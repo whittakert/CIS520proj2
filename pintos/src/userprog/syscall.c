@@ -46,8 +46,70 @@ syscall_init (void)
 static void
 syscall_handler (struct intr_frame *f UNUSED)
 {
-  printf ("system call!\n");
-  thread_exit ();
+
+int syscall_num = *(int*)f->esp;
+int arg_1 = *((int*)f->esp + 1);
+int arg_2 = *((int*)f->esp + 2);
+int arg_3 = *((int*)f->esp + 3);
+
+switch( syscall_num )
+{
+	case SYS_HALT:
+		sys_halt();
+		break;
+
+	case SYS_EXIT:
+		sys_exit( arg_1 );
+		break;
+
+	case SYS_EXEC:
+		f->eax = sys_exec( (char*)arg_1 );
+		break;
+
+	case SYS_WAIT:
+		sys_wait( (pid_t)arg_1 );
+		break;
+
+	case SYS_CREATE:
+		f->eax = sys_create( (char*)arg_1, (unsigned)arg_2 );
+		break;
+
+	case SYS_REMOVE:
+		f->eax = sys_remove( (char*)arg_1 );
+		break;
+
+	case SYS_OPEN:
+		f->eax = sys_open( (char*)arg_1 );
+		break;
+
+	case SYS_FILESIZE:
+		f->eax = sys_filesize( arg_1 );
+		break;
+
+	case SYS_READ:
+		f->eax = sys_read( arg_1, (void*)arg_2, (unsigned)arg_3 );
+		break;
+
+	case SYS_WRITE:
+		f->eax = sys_write( arg_1, (void*)arg_2, (unsigned)arg_3 );
+		break;
+
+	case SYS_SEEK:
+		sys_seek( arg_1, arg_2 );
+		break;
+
+	case SYS_TELL:
+		f->eax = sys_tell( arg_1 );
+		break;
+
+	case SYS_CLOSE:
+		sys_close( arg_1 );
+		break;
+
+	default:
+		break;
+
+}
 }
 
 /* Returns true if UADDR is a valid, mapped user address,
