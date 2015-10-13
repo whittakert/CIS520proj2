@@ -67,7 +67,7 @@ switch( syscall_num )
 		break;
 
 	case SYS_WAIT:
-		sys_wait( (pid_t)arg_1 );
+		sys_wait( (tid_t)arg_1 );
 		break;
 
 	case SYS_CREATE:
