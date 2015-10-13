@@ -640,7 +640,7 @@ setup_stack (const char *cmd_line, void **esp)
     *esp -= strlen(token) + 1; //Move the stack pointer down by this argument
     argv[i] = *esp; //Set the address of the word to be the same as the stack pointer position
     memcpy(*esp, token, strlen(token) + 1); //Copy the value from temp to the stack
-printf("token = %s\n\n", token); //TODO: REMOVE
+
     i++;
   }
 
