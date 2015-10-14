@@ -146,6 +146,7 @@ process_wait (tid_t child_tid)
 void
 process_exit (void)
 {
+
   struct thread *cur = thread_current ();
   struct list_elem *e, *next;
   uint32_t *pd;
@@ -513,8 +514,20 @@ load_segment (struct file *file, off_t ofs, uint8_t *upage,
 static void
 reverse (int argc, char **argv) 
 {
-   /* add code */
+   int i = 0;
+   char**copy = calloc(argc, sizeof(char*)); //we need to hold the pointers elsewhere
 
+   for(i = 0; i < argc; i++) //copy all pointers in reverse order
+   {
+     copy[i] = argv[argc - (i + 1)];
+   }
+
+   for(i = 0; i < argc; i++) //copy all pointers back to original array
+   {
+     argv[i] = copy[i];
+   }
+   
+   free(copy); //Release the memory allocated above
    return;
 }
 
@@ -554,6 +567,7 @@ init_cmd_line (uint8_t *kpage, uint8_t *upage, const char *cmd_line,
 
   /* Push a temporary working copy of the command line string. */
   cmd_line_copy = push (kpage, &ofs, cmd_line, strlen (cmd_line) + 1);
+
   if (cmd_line_copy == NULL)
     return false;
 
@@ -596,13 +610,6 @@ setup_stack (const char *cmd_line, void **esp)
   uint8_t *kpage;
   bool success = false;
 
-  int i = 0;
-  size_t argc = 0;
-  char *delim = " ";
-  char *token;
-  char *save_ptr;
-  char **argv;
-
   kpage = palloc_get_page (PAL_USER | PAL_ZERO);
   if (kpage != NULL) 
     {
@@ -613,57 +620,8 @@ setup_stack (const char *cmd_line, void **esp)
         success = init_cmd_line (kpage, upage, cmd_line, esp);
       }
       else
-      {
         palloc_free_page (kpage);
-        return success;
-      }
     }
-
-  /* Now push the correct values and addresses onto the stack from cmd_line. */
-
-  /* First we need to separate the words. */
-
-  for(i = 0; cmd_line[i] != '\0'; i++) //loop through cmd_line to find the number of arguments
-  {
-    if(cmd_line[i] == ' ' && cmd_line[i+1] != ' ' && cmd_line[i+1] != '\0')
-      argc++;
-  }
-
-  argc++; //Add the filename to the argument count
-
-  argv = (char**)calloc(argc + 1, sizeof(char*)); //Allocate empty space for each argument plus a sentinel
-
-  i = 0;
-  for(token = strtok_r(cmd_line, delim, &save_ptr); token != NULL;
-      token = strtok_r(NULL, delim, &save_ptr)) //for each argument in file_name (including the name of the file)
-  {
-    *esp -= strlen(token) + 1; //Move the stack pointer down by this argument
-    argv[i] = *esp; //Set the address of the word to be the same as the stack pointer position
-    memcpy(*esp, token, strlen(token) + 1); //Copy the value from temp to the stack
-
-    i++;
-  }
-
-  argv[argc] = 0; //sentinel
-  *esp -= sizeof(char*); //move the stack pointer down
-  memcpy(*esp, &argv[argc], sizeof(char*));
-
-  for(i = argc - 1; i >= 0; i--) //for each argument in reverse order
-  {
-    *esp -= sizeof(char*); //Move the stack pointer down by a pointer
-    memcpy(*esp, &argv[i], sizeof(char*)); //Put the address of argument i onto the stack
-  }
-
-  *esp -= sizeof(char**); 
-  memcpy(*esp, &argv, sizeof(char**)); //Put argv on stack
-
-  *esp -= sizeof(int); 
-  memcpy(*esp, &argc, sizeof(int)); //Put the argument count on stack
-
-  *esp -= sizeof(void *);
-  memcpy(*esp, &argv[argc], sizeof(void *));
-
-  free(argv); //Release the memory we allocated above
 
   return success;
 }
