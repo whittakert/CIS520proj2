@@ -139,6 +139,41 @@ release_child (struct wait_status *cs)
 int
 process_wait (tid_t child_tid) 
 {	
+//  return -1;
+/*
+	struct thread *cur = thread_current(); // get parent/current thread
+	struct list_elem *elem; //list to find child
+	
+	//sort through children list
+	for (elem = list_begin(&cur->children); elem != list_end(&cur->children); 
+		elem = list_next(elem)) 
+	{
+		//create new wait status to compare to child_tid		
+		struct wait_status *cs = list_entry(elem, struct wait_status, elem); 
+		bool dead = sema_try_down(&cs->dead);// to test if child is already dead or not
+
+		/*
+		Returns -1 if... 
+		1. child is invalid
+		2. child is not a child of the current process
+		3. or if the child has already called wait 
+		
+		if(cs->tid !=child_tid || dead == true)
+		{
+			return -1;
+		}
+		if(cs->tid == child_tid) //if they are the same thread
+		{
+			int exit = cs->exit_code; // set return value to the exit code of the child
+			list_remove(elem);	  // removes from list
+			sema_down(&cs->dead); 	  // child is now alive
+			release_child(cs);	  // get rid of child
+			sema_up(&cs->dead);	  // child is now dead
+			return exit;
+		}
+		
+	}
+	*/
 
 	struct thread *cur = thread_current(); // get parent/current thread
 	struct list_elem *elem; //list to find child

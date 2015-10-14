@@ -8,8 +8,8 @@
 
 >> Fill in the names of your group members.
 
-Taylor Whittaker
 Doug Anjard
+Taylor Whittaker
 Ethan Koch
 
 ---- PRELIMINARIES ----
@@ -21,7 +21,7 @@ Ethan Koch
 >> preparing your submission, other than the Pintos documentation, course
 >> text, lecture notes, and course staff.
 
-**NOTE, we started with the pintos starter code provided in pub/cis520/pintos2.tgz
+Our group started with the Project 2 code provided in pub/cis520/pintos2.tgz
 
 			   ARGUMENT PASSING
 			   ================
@@ -32,7 +32,8 @@ Ethan Koch
 >> `struct' member, global or static variable, `typedef', or
 >> enumeration.  Identify the purpose of each in 25 words or less.
 
-	None were added or modified
+Because the starter code had so much of argument passing already
+implememted, we did not add any structs, variables, or enumerations.
 
 			---- ALGORITHMS ----
 
@@ -40,33 +41,32 @@ Ethan Koch
 >> you arrange for the elements of argv[] to be in the right order?
 >> How do you avoid overflowing the stack page? 
    
-	Most of argument passing was implemented in the starter code.
+Argument passing was already mostly implemented (in the starter code).
 
-	Argument parsing was implemented in the starter code.
+Argument parsing was already completely implemented (in the starter code).
 
-	The elements in argv[] are arranged in correct order with the
-	reverse function. The reverse function copies all pointers in
-	argv[] to a temporary array in reverse order, then all pointers
-	are placed back into argv[].
+The only remaining thing to implement was the reverse function. This
+function essentially 'flipped' all of the pointers in argv[] by copying
+them into a temporary array in reverse order and setting argv[] back
+to the temporary array.
 
-	Avoiding overflowing the stack page was implemented in the
-	starter code.
+Avoiding overflowing the stack page was already implemented (in the
+starter code).
 
 			---- RATIONALE ----
 
 >> A3: Why does Pintos implement strtok_r() but not strtok()? 
 
-	   SAVE_PTR is the address of a `char *' variable used to keep
+	   string.c states,
+		 "SAVE_PTR is the address of a 'char *' variable used to keep
 	   track of the tokenizer's position.  The return value each time
 	   is the next token in the string, or a null pointer if no
-	   tokens remain. -- taken from string.c file
+	   tokens remain."
 	
-	   strtok_r() uses that third argument to keep track of where the 
-	   tokenizer is at. This makes its safe for multi-threading. strtok()
-	   uses static variables that can be accessed by different threads, thus
-	   meaning it is not safe for multi threading. 
-	   
-	   --multithreading!!
+	   strtok_r() uses its third argument to keep track of where the 
+	   tokenizer is at. This is efficient for multi-threading. strtok()
+	   uses static variables that are accessed by different threads, so 
+     it is not safe for multi threading. 
 
 >> A4: In Pintos, the kernel separates commands into an executable name
 >> and arguments.  In Unix-like systems, the shell does this
@@ -91,20 +91,22 @@ Ethan Koch
 >> `struct' member, global or static variable, `typedef', or
 >> enumeration.  Identify the purpose of each in 25 words or less.
 
-	file_descriptor struct
-	struct lock fs_lock; //file sys lock
+All of our structures were already implemented for us (in starter code).
 
-		N/A - all of our structures were implemented for us in starter code
-		
-		We utilized the file descriptor provided for us
-		in the starter code struct to find the files.
-		The lock was used so that only one system call 
-		could be made to a file at a time.
+	file_descriptor struct
+This struct was used to make finding files easier. Each thread held a list
+of file_descriptor structs so that files used in system calls could be 
+easily accessed by a handle (int).
+
+	struct lock fs_lock;
+This lock was used to protect files and the file system to that only one
+system call could use the pertaining functions at once.
 		
 
 >> B2: Describe how file descriptors are associated with open files.
 >> Are file descriptors unique within the entire OS or just within a
 >> single process?
+
 		File descriptors are unique within each process. The
 		thread has a list of its own file descriptors. 
 		This file descriptor struct was implemented for us in the
@@ -156,12 +158,10 @@ byte by byte. This may be inefficient, but it is very simple.
 >> B5: Briefly describe your implementation of the "wait" system call
 >> and how it interacts with process termination.
 
-   1. Get current thread, create iterator 
-   2. Sort through children list for current thread
-   3. if child is a child of current process then
-	i. sema_down to make child alive
-	ii. return exit_code
-   4. if we get through entire loop, return -1
+First, we get current thread and create iterator. Then, sort through 
+children list for current thread. Then, if child is a child of 
+current process then sema_down to make the child alive and return 
+the exit code. Finally, if we get through entire loop, return -1.
 
 >> B6: Any access to user program memory at a user-specified address
 >> can fail due to a bad pointer value.  Such accesses must cause the
@@ -203,7 +203,6 @@ of the current thread's children and the wait_statuses.
 >> that all resources are freed in each case?  How about when P
 >> terminates without waiting, before C exits?  After C exits?  Are
 >> there any special cases?
-
 
 	We iterate through the list of the current thread's children list
 	and ensure that we don't return the exit code of the incorrect child thread.
@@ -257,3 +256,8 @@ the quarter.
 >> students, either for future quarters or the remaining projects?
 
 >> Any other comments?
+
+It would have been really nice to know about the starter code more 
+than 8 hours before the project was due. We restarted this project 
+at 4 PM the day it was due, because we were told it could not be done 
+without it.
