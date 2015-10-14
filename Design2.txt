@@ -172,6 +172,8 @@ Ethan Koch
 
 	We iterate through the list of the current thread's children list
 	and ensure that we don't return the exit code of the incorrect child thread.
+	If the current thread (P) terminates before the child thread can exit, 
+	then all of the current thread children's list will be freed as cur exits.
 	If wait is called after the child exits, then the current thread won't find 
 	the child and will return -1 after iterating. 
 	We free all of the resources when the processes exits. 
