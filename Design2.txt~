@@ -39,22 +39,18 @@ Ethan Koch
 >> A2: Briefly describe how you implemented argument parsing.  How do
 >> you arrange for the elements of argv[] to be in the right order?
 >> How do you avoid overflowing the stack page? 
-   
-	Most of argument passing was implemented in the starter code.
+   1. In the load function, we copy the file name to parse it later
+   2. In setup_stack we look through the filename to find the number of arguments
+   3. then we allocate space for each argument + sentinel
+   4. we used a for loop to add the arguments to the stack in reverse order
+   5. we then add the argv and argument count to the stack
+   6. release memory.
 
-	Argument parsing was implemented in the starter code.
 
-	The elements in argv[] are arranged in correct order with the
-	reverse function. The reverse function copies all pointers in
-	argv[] to a temporary array in reverse order, then all pointers
-	are placed back into argv[].
-
-	Avoiding overflowing the stack page was implemented in the
-	starter code.
 
 			---- RATIONALE ----
 
->> A3: Why does Pintos implement strtok_r() but not strtok()? 
+>> A3: Why does Pintos implement strtok_r() but not strtok()? - tw 10.6
 
    SAVE_PTR is the address of a `char *' variable used to keep
    track of the tokenizer's position.  The return value each time
@@ -68,7 +64,7 @@ Ethan Koch
 
 >> A4: In Pintos, the kernel separates commands into an executable name
 >> and arguments.  In Unix-like systems, the shell does this
->> separation.  Identify at least two advantages of the Unix approach.
+>> separation.  Identify at least two advantages of the Unix approach. - tw 10.6
 
    1. It's more advanced/efficient. With tab-completion, piping and 
    by being able to redirect files, then the execution of these files
