@@ -87,14 +87,32 @@ Ethan Koch
 >> `struct' member, global or static variable, `typedef', or
 >> enumeration.  Identify the purpose of each in 25 words or less.
 
+	file_descriptor struct
+	struct lock fs_lock; //file sys lock
+
 >> B2: Describe how file descriptors are associated with open files.
 >> Are file descriptors unique within the entire OS or just within a
 >> single process?
+
+	Each process's thread has it's own list of file descriptors.
 
 			---- ALGORITHMS ----
 
 >> B3: Describe your code for reading and writing user data from the
 >> kernel.
+
+The code for the write system call was provided by the starter code. 
+Most of this was easily translatable to the read system call. The
+process was as follows:
+
+1) Look up the file descriptor
+2) Lock the file system
+3) Determine how many bytes need to be read/written from the given page
+4) Verify that the page is valid for use
+5) Make the call to file_read()
+6) The amount read/written from the file_read() is less than the total
+   amount that we need to read, then go back to step 2.
+7) Release the file system lock
 
 >> B4: Suppose a system call causes a full page (4,096 bytes) of data
 >> to be copied from user space into the kernel.  What is the least
@@ -103,21 +121,14 @@ Ethan Koch
 >> for a system call that only copies 2 bytes of data?  Is there room
 >> for improvement in these numbers, and how much?
 
+Since we used the starter code for memory redirection, we used the 
+copy_in_string() function. This called get_user(), which moved memory 
+byte by byte. This may be inefficient, but it is very simple.
+
 >> B5: Briefly describe your implementation of the "wait" system call
 >> and how it interacts with process termination.
 
-   1. Get current thread, create list
-   2. Sort through children list for current thread
-   3. creat a wait_status for each child element
-   4. creat bool to test to see if the child is dead or not
-   5. return -1 child is not a child of the current process or if our bool is true
-   6. if child is a child of current process then
-	i. set return equal to that return value
-	ii. sema_down to make child alive
-	iii. release child
-	iv. sema_up to make child dead
-	v. return 
-   7. if we get past both if statements, return -1
+
 
 >> B6: Any access to user program memory at a user-specified address
 >> can fail due to a bad pointer value.  Such accesses must cause the
@@ -133,12 +144,25 @@ Ethan Koch
 >> paragraphs, describe the strategy or strategies you adopted for
 >> managing these issues.  Give an example.
 
+For error cathing in this project, most of this was handled in the 
+starter code. (-1) was returned for system calls that failed, but
+if we wanted a system call to quit and not continue, either 
+thread_exit() or sys_exit(-1) was called. These essentially did 
+the same thing, since sys_exit just sets the exit code of the wait 
+status of the current thread to (-1) and calls thread_exit() (as 
+well). Memory is handled in the thread_exit function itself.
+
 			---- SYNCHRONIZATION ----
 
 >> B7: The "exec" system call returns -1 if loading the new executable
 >> fails, so it cannot return before the new executable has completed
 >> loading.  How does your code ensure this?  How is the load
 >> success/failure status passed back to the thread that calls "exec"?
+
+Our exec system call calls the process_execute() call in the starter 
+code directly. The starter code handled most of these elements, including
+the semaphore to watch for dead processes and the list that holds the list
+of the current thread's children and the wait_statuses.
 
 >> B8: Consider parent process P with child process C.  How do you
 >> ensure proper synchronization and avoid race conditions when P
@@ -147,16 +171,27 @@ Ethan Koch
 >> terminates without waiting, before C exits?  After C exits?  Are
 >> there any special cases?
 
+
+
 			---- RATIONALE ----
 
 >> B9: Why did you choose to implement access to user memory from the
 >> kernel in the way that you did?
 
+We used the copy_in_string() function provided in the starter code 
+because it efficiently moved all memory from the string out of user
+memory into kernel memory, and caught many failing cases.
+
 >> B10: What advantages or disadvantages can you see to your design
 >> for file descriptors?
 
+They allow for a much faster file lookup. Files only needed an int 
+to be 'looked up' and used in the system calls.
+
 >> B11: The default tid_t to pid_t mapping is the identity mapping.
 >> If you changed it, what advantages are there to your approach?
+
+We did not change this mapping, tid_t's and pid_t's are used together.
 
 			   SURVEY QUESTIONS
 			   ================

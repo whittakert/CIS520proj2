@@ -98,7 +98,7 @@ switch( syscall_num )
 		break;
 
 	case SYS_SEEK:
-		sys_seek( arg_1, arg_2 );
+		sys_seek( arg_1, (unsigned)arg_2 );
 		break;
 
 	case SYS_TELL:
@@ -211,32 +211,26 @@ sys_exit (int exit_code)
 static int
 sys_exec (const char *ufile) 
 {
-	int tid;
-	lock_acquire (&fs_lock);
-	tid = process_execute (ufile);
-	lock_release (&fs_lock);
-	return tid;
+	return process_execute (ufile);
 }
  
 /* Wait system call. */
 static int
 sys_wait (tid_t child) 
 {
-	int status;
-	lock_acquire (&fs_lock);
-	status = process_wait(child);
-	lock_release (&fs_lock);
-	return status;
+	return process_wait(child);
 }
  
 /* Create system call. */
 static int
 sys_create (const char *ufile, unsigned initial_size) 
 {
+  char *kfile = copy_in_string (ufile);
 	bool created;
 	lock_acquire (&fs_lock);
-  created = filesys_create(ufile, (off_t)initial_size);
+  created = filesys_create(kfile, (off_t)initial_size);
   lock_release (&fs_lock);
+  palloc_free_page (kfile);
 	return created;
 }
  
@@ -244,10 +238,12 @@ sys_create (const char *ufile, unsigned initial_size)
 static int
 sys_remove (const char *ufile) 
 {
+  char *kfile = copy_in_string (ufile);
 	bool removed;
 	lock_acquire (&fs_lock);
-  removed = filesys_remove(ufile);
+  removed = filesys_remove(kfile);
   lock_release (&fs_lock);
+  palloc_free_page (kfile);
 	return removed;
 }
  
@@ -347,16 +343,7 @@ sys_read (int handle, void *udst_, unsigned size)
           thread_exit ();
         }
 
-			
-      /* Do the write. 
-      if (handle == STDOUT_FILENO)
-        {
-          putbuf (usrc, write_amt);
-          retval = write_amt;
-        }
-      else
-			*/
-      	retval = file_read (fd->file, udst, read_amt);
+      retval = file_read (fd->file, udst, read_amt);
       if (retval < 0) 
         {
           if (bytes_read == 0)
@@ -365,7 +352,7 @@ sys_read (int handle, void *udst_, unsigned size)
         }
       bytes_read += retval;
 
-      /* If it was a short write we're done. */
+      /* If it was a short read we're done. */
       if (retval != (off_t) read_amt)
         break;
 
@@ -438,8 +425,7 @@ static int
 sys_seek (int handle, unsigned position) 
 {
 	struct file_descriptor *fd = lookup_fd (handle);
-	if (fd == NULL)
-		sys_exit(-1); //TW 10.12
+	if (fd == NULL) thread_exit();
 	lock_acquire (&fs_lock);
 	file_seek(fd->file, position);
 	lock_release (&fs_lock);
@@ -450,8 +436,7 @@ static int
 sys_tell (int handle) 
 {
 	struct file_descriptor *fd = lookup_fd (handle);
-	if (fd == NULL)
-		sys_exit(-1); //TW 10.12	
+	if (fd == NULL) thread_exit();	
 	unsigned pos;
 	lock_acquire (&fs_lock);
 	pos = (unsigned)file_tell(fd->file);
@@ -464,8 +449,7 @@ static int
 sys_close (int handle) 
 {
 	struct file_descriptor *fd = lookup_fd (handle);
-	if (fd == NULL)
-		sys_exit(-1);//TW 10.12 
+	if (fd == NULL) thread_exit(); 
 	lock_acquire (&fs_lock);
 	file_close(fd->file);
 	lock_release (&fs_lock);
