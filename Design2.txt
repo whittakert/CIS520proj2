@@ -56,27 +56,27 @@ Ethan Koch
 
 >> A3: Why does Pintos implement strtok_r() but not strtok()? 
 
-   SAVE_PTR is the address of a `char *' variable used to keep
-   track of the tokenizer's position.  The return value each time
-   is the next token in the string, or a null pointer if no
-   tokens remain. -- taken from string.c file
-
-   strtok_r() uses that third argument to keep track of where the 
-   tokenizer is at. This makes its safe for multi-threading. strtok()
-   uses static variables that can be accessed by different threads, thus
-   meaning it is not safe for multi threading. 
+	   SAVE_PTR is the address of a `char *' variable used to keep
+	   track of the tokenizer's position.  The return value each time
+	   is the next token in the string, or a null pointer if no
+	   tokens remain. -- taken from string.c file
+	
+	   strtok_r() uses that third argument to keep track of where the 
+	   tokenizer is at. This makes its safe for multi-threading. strtok()
+	   uses static variables that can be accessed by different threads, thus
+	   meaning it is not safe for multi threading. 
 
 >> A4: In Pintos, the kernel separates commands into an executable name
 >> and arguments.  In Unix-like systems, the shell does this
 >> separation.  Identify at least two advantages of the Unix approach.
 
-   1. It's more advanced/efficient. With tab-completion, piping and 
-   by being able to redirect files, then the execution of these files
-   are spread out via the PATH variable.
-  
-   2. UNIX also parses the user input for you in the shell. This means 
-   that the kernel does not have to do it, making the kernel more simple
-   and the system more secure. 
+	   1. It's more advanced/efficient. With tab-completion, piping and 
+	   by being able to redirect files, then the execution of these files
+	   are spread out via the PATH variable.
+	  
+	   2. UNIX also parses the user input for you in the shell. This means 
+	   that the kernel does not have to do it, making the kernel more simple
+	   and the system more secure. 
 
 			     SYSTEM CALLS
 			     ============
