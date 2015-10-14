@@ -116,14 +116,18 @@ This constraint will help us to avoid overflowing the stack.
 >> B5: Briefly describe your implementation of the "wait" system call
 >> and how it interacts with process termination.
 
-   1. Create a temporary thread based on the child TID passed into the function
-   2. We return -1 if... 
-	i. child is invalid (== NULL) 
-	ii. child is not a child of the current process
-	iii. of if the child has already called wait 
-   3. we decrease our waiting semaphore
-   4. we increase the exit semaphore
-   5. we set the temp thread waited to true
+   1. Get current thread, create list
+   2. Sort through children list for current thread
+   3. creat a wait_status for each child element
+   4. creat bool to test to see if the child is dead or not
+   5. return -1 child is not a child of the current process or if our bool is true
+   6. if child is a child of current process then
+	i. set return equal to that return value
+	ii. sema_down to make child alive
+	iii. release child
+	iv. sema_up to make child dead
+	v. return 
+   7. if we get past both if statements, return -1
 
 >> B6: Any access to user program memory at a user-specified address
 >> can fail due to a bad pointer value.  Such accesses must cause the
