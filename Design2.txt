@@ -21,6 +21,8 @@ Ethan Koch
 >> preparing your submission, other than the Pintos documentation, course
 >> text, lecture notes, and course staff.
 
+**NOTE, we started with the pintos starter code provided in pub/cis520/pintos2.tgz
+
 			   ARGUMENT PASSING
 			   ================
 			
