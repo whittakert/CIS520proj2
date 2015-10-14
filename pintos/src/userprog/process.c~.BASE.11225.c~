@@ -138,50 +138,14 @@ release_child (struct wait_status *cs)
    immediately, without waiting. */
 int
 process_wait (tid_t child_tid) 
-{	
-//  return -1;
-
-	struct thread *cur = thread_current(); // get parent/current thread
-	struct list_elem *elem; //list to find child
-	
-	//sort through children list
-	for (elem = list_begin(&cur->children); elem != list_end(&cur->children); 
-		elem = list_next(elem)) 
-	{
-		//create new wait status to compare to child_tid		
-		struct wait_status *cs = list_entry(elem, struct wait_status, elem); 
-		bool dead = sema_try_down(&cs->dead);// to test if child is already dead or not
-
-		/*
-		Returns -1 if... 
-		1. child is invalid
-		2. child is not a child of the current process
-		3. or if the child has already called wait 
-		*/
-		if(cs->tid !=child_tid || dead == true)
-		{
-			return -1;
-		}
-		if(cs->tid == child_tid) //if they are the same thread
-		{
-			int exit = cs->exit_code; // set return value to the exit code of the child
-			list_remove(elem);	  // removes from list
-			sema_down(&cs->dead); 	  // child is now alive
-			release_child(cs);	  // get rid of child
-			sema_up(&cs->dead);	  // child is now dead
-			return exit;
-		}
-		
-	}
-return -1;
-
+{
+  return -1;
 }
 
 /* Free the current process's resources. */
 void
 process_exit (void)
 {
-
   struct thread *cur = thread_current ();
   struct list_elem *e, *next;
   uint32_t *pd;
@@ -195,8 +159,7 @@ process_exit (void)
       struct wait_status *cs = cur->wait_status;
 
       /* add code */
-      printf ("%s: exit(%d)\n", cur->name, cs->exit_code); // HACK all successful ;-)
-      sema_up(&cs->dead);
+      printf ("%s: exit(0)\n", cur->name); // HACK all successful ;-)
 
       release_child (cs);
     }
@@ -550,20 +513,8 @@ load_segment (struct file *file, off_t ofs, uint8_t *upage,
 static void
 reverse (int argc, char **argv) 
 {
-   int i = 0;
-   char**copy = calloc(argc, sizeof(char*)); //we need to hold the pointers elsewhere
+   /* add code */
 
-   for(i = 0; i < argc; i++) //copy all pointers in reverse order
-   {
-     copy[i] = argv[argc - (i + 1)];
-   }
-
-   for(i = 0; i < argc; i++) //copy all pointers back to original array
-   {
-     argv[i] = copy[i];
-   }
-   
-   free(copy); //Release the memory allocated above
    return;
 }
 
@@ -603,7 +554,6 @@ init_cmd_line (uint8_t *kpage, uint8_t *upage, const char *cmd_line,
 
   /* Push a temporary working copy of the command line string. */
   cmd_line_copy = push (kpage, &ofs, cmd_line, strlen (cmd_line) + 1);
-
   if (cmd_line_copy == NULL)
     return false;
 
@@ -646,6 +596,13 @@ setup_stack (const char *cmd_line, void **esp)
   uint8_t *kpage;
   bool success = false;
 
+  int i = 0;
+  size_t argc = 0;
+  char *delim = " ";
+  char *token;
+  char *save_ptr;
+  char **argv;
+
   kpage = palloc_get_page (PAL_USER | PAL_ZERO);
   if (kpage != NULL) 
     {
@@ -656,8 +613,57 @@ setup_stack (const char *cmd_line, void **esp)
         success = init_cmd_line (kpage, upage, cmd_line, esp);
       }
       else
+      {
         palloc_free_page (kpage);
+        return success;
+      }
     }
+
+  /* Now push the correct values and addresses onto the stack from cmd_line. */
+
+  /* First we need to separate the words. */
+
+  for(i = 0; cmd_line[i] != '\0'; i++) //loop through cmd_line to find the number of arguments
+  {
+    if(cmd_line[i] == ' ' && cmd_line[i+1] != ' ' && cmd_line[i+1] != '\0')
+      argc++;
+  }
+
+  argc++; //Add the filename to the argument count
+
+  argv = (char**)calloc(argc + 1, sizeof(char*)); //Allocate empty space for each argument plus a sentinel
+
+  i = 0;
+  for(token = strtok_r(cmd_line, delim, &save_ptr); token != NULL;
+      token = strtok_r(NULL, delim, &save_ptr)) //for each argument in file_name (including the name of the file)
+  {
+    *esp -= strlen(token) + 1; //Move the stack pointer down by this argument
+    argv[i] = *esp; //Set the address of the word to be the same as the stack pointer position
+    memcpy(*esp, token, strlen(token) + 1); //Copy the value from temp to the stack
+printf("token = %s\n\n", token); //TODO: REMOVE
+    i++;
+  }
+
+  argv[argc] = 0; //sentinel
+  *esp -= sizeof(char*); //move the stack pointer down
+  memcpy(*esp, &argv[argc], sizeof(char*));
+
+  for(i = argc - 1; i >= 0; i--) //for each argument in reverse order
+  {
+    *esp -= sizeof(char*); //Move the stack pointer down by a pointer
+    memcpy(*esp, &argv[i], sizeof(char*)); //Put the address of argument i onto the stack
+  }
+
+  *esp -= sizeof(char**); 
+  memcpy(*esp, &argv, sizeof(char**)); //Put argv on stack
+
+  *esp -= sizeof(int); 
+  memcpy(*esp, &argc, sizeof(int)); //Put the argument count on stack
+
+  *esp -= sizeof(void *);
+  memcpy(*esp, &argv[argc], sizeof(void *));
+
+  free(argv); //Release the memory we allocated above
 
   return success;
 }
