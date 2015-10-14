@@ -180,6 +180,7 @@ process_wait (tid_t child_tid)
 	for (elem = list_begin(&cur->children); elem != list_end(&cur->children); 
 		elem = list_next(elem)) 
 	{
+		struct wait_status *cs = list_entry(elem, struct wait_status, elem); 
 		if(cs->tid == child_tid) //if they are the same thread
 		{
 			sema_down(&cs->dead);
@@ -208,7 +209,7 @@ process_exit (void)
       struct wait_status *cs = cur->wait_status;
 
       /* add code */
-      printf ("%s: exit(%d)\n", cur->name, cs->exit_code); // HACK all successful ;-)
+      printf ("%s: exit(%d)\n", cur->name, cs->exit_code);
       sema_up(&cs->dead);
 
       release_child (cs);
