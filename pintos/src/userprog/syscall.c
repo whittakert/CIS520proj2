@@ -305,7 +305,6 @@ lookup_fd (int handle)
 		else
 		temp = list_next ( temp ); 
 	}
-	process_exit(); // Either or?
 	thread_exit();
 }
  
