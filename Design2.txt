@@ -65,6 +65,8 @@ Ethan Koch
 	   tokenizer is at. This makes its safe for multi-threading. strtok()
 	   uses static variables that can be accessed by different threads, thus
 	   meaning it is not safe for multi threading. 
+	   
+	   --multithreading!!
 
 >> A4: In Pintos, the kernel separates commands into an executable name
 >> and arguments.  In Unix-like systems, the shell does this
@@ -77,7 +79,9 @@ Ethan Koch
 	   2. UNIX also parses the user input for you in the shell. This means 
 	   that the kernel does not have to do it, making the kernel more simple
 	   and the system more secure. 
-
+	   
+	   -- less processing that the kernel has to do. 
+	   
 			     SYSTEM CALLS
 			     ============
 
@@ -87,13 +91,23 @@ Ethan Koch
 >> `struct' member, global or static variable, `typedef', or
 >> enumeration.  Identify the purpose of each in 25 words or less.
 
+		N/A - all of our structures were implemented for us in starter code
+		
+		We utilized the file descriptor provided for us
+		in the starter code struct to find the files.
+		The lock was used so that only one system call 
+		could be made to a file at a time.
+		
+
 >> B2: Describe how file descriptors are associated with open files.
 >> Are file descriptors unique within the entire OS or just within a
 >> single process?
-		File descriptors are unique withint each proces. The
+		File descriptors are unique within each process. The
 		thread has a list of its own file descriptors. 
 		This file descriptor struct was implemented for us in the
 		starter code and is associated with the open files. 
+		
+		Each process's thread has its own list of file descriptors.
 		
 		/* A file descriptor, for binding a file handle to a file. */
 		struct file_descriptor
@@ -107,6 +121,9 @@ Ethan Koch
 
 >> B3: Describe your code for reading and writing user data from the
 >> kernel.
+
+
+
 
 >> B4: Suppose a system call causes a full page (4,096 bytes) of data
 >> to be copied from user space into the kernel.  What is the least
@@ -152,6 +169,13 @@ Ethan Koch
 >> that all resources are freed in each case?  How about when P
 >> terminates without waiting, before C exits?  After C exits?  Are
 >> there any special cases?
+
+	We iterate through the list of the current thread's children list
+	and ensure that we don't return the exit code of the incorrect child thread.
+	If wait is called after the child exits, then the current thread won't find 
+	the child and will return -1 after iterating. 
+	We free all of the resources when the processes exits. 
+	
 
 			---- RATIONALE ----
 
